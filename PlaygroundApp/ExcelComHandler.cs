@@ -1,4 +1,5 @@
-﻿using Timer = System.Timers.Timer;
+﻿using System.Runtime.InteropServices;
+using Timer = System.Timers.Timer;
 
 namespace PlaygroundApp
 {
@@ -9,6 +10,7 @@ namespace PlaygroundApp
 
         private int _userCount;
         private Timer? _timer;
+        private int _procColor;
 
         private ExcelComHandler() { }
 
@@ -38,13 +40,14 @@ namespace PlaygroundApp
             }
         }
 
-        public void OnProcessComplete(object? sender, EventArgs e)
+        public void OnProcessComplete(object? sender, ECHEventArgs e)
         {
             this._userCount--;
             if (this._userCount == 0)
             {
                 this.Timeout();
             }
+            _procColor = e.ConsoleColor;
         }
 
         private void Timeout()
@@ -81,8 +84,10 @@ namespace PlaygroundApp
                 _timer.Stop();
                 _timer.Close();
             }
-            Console.WriteLine($"<<kill App {this.GetHashCode()}>> => {_pool.Count}");
+            Console.ForegroundColor = (ConsoleColor)_procColor;
+            Console.WriteLine($"\n<<kill App {this.GetHashCode()}>> => {_pool.Count}\n");
             _pool.Remove(this);
+            _ = Marshal.FinalReleaseComObject(this);
         }
 
         public void Dispose()
